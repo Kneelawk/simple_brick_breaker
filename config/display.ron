@@ -1,0 +1,4 @@
+(
+  title: "simple_brick_breaker",
+  dimensions: Some((500, 500)),
+)

@@ -1,0 +1,14 @@
+# Unwanted files
+/target/
+
+# IDE files
+/.idea/
+/*.ipr
+/*.iml
+
+# Backup files
+.DS_Store
+thumbs.db
+*~
+*.rs.bk
+*.swp
