@@ -2,7 +2,7 @@ use crate::game::{
     Paddle, ARENA_WIDTH, PADDLE_DISTANCE_VELOCITY_RATIO, PADDLE_MAX_VELOCITY, PADDLE_WIDTH,
 };
 use amethyst::{
-    core::transform::Transform,
+    core::{timing::Time, transform::Transform},
     derive::SystemDesc,
     ecs::{Join, Read, ReadStorage, System, SystemData, WriteStorage},
     input::{InputHandler, StringBindings},
@@ -24,9 +24,10 @@ impl<'s> System<'s> for PaddleSystem {
         WriteStorage<'s, Transform>,
         ReadStorage<'s, Paddle>,
         Read<'s, InputHandler<StringBindings>>,
+        Read<'s, Time>,
     );
 
-    fn run(&mut self, (mut transforms, paddles, input): Self::SystemData) {
+    fn run(&mut self, (mut transforms, paddles, input, time): Self::SystemData) {
         if let Some((x, _y)) = input.mouse_position() {
             self.target_x = x.clamp(PADDLE_WIDTH / 2.0, ARENA_WIDTH - PADDLE_WIDTH / 2.0);
         }
@@ -37,9 +38,9 @@ impl<'s> System<'s> for PaddleSystem {
             let vel_x = if abs_diff_x > 0.0 {
                 if abs_diff_x > PADDLE_MAX_VELOCITY * PADDLE_DISTANCE_VELOCITY_RATIO {
                     if diff_x > 0.0 {
-                        12.0
+                        PADDLE_MAX_VELOCITY
                     } else {
-                        -12.0
+                        -PADDLE_MAX_VELOCITY
                     }
                 } else {
                     diff_x / PADDLE_DISTANCE_VELOCITY_RATIO
@@ -47,7 +48,7 @@ impl<'s> System<'s> for PaddleSystem {
             } else {
                 0.0
             };
-            transform.set_translation_x(paddle_x + vel_x);
+            transform.set_translation_x(paddle_x + vel_x * time.delta_seconds());
         }
     }
 }
