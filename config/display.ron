@@ -1,4 +1,4 @@
 (
-  title: "simple_brick_breaker",
-  dimensions: Some((500, 500)),
+  title: "Simple Brick Breaker",
+  dimensions: Some((1280, 720)),
 )
