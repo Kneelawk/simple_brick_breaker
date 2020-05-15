@@ -27,8 +27,6 @@ impl SimpleState for GameState {
 
         let sprite_sheet_handle = load_sprite_sheet(world);
 
-        world.register::<Paddle>();
-
         initialize_camera(world);
         initialize_paddle(world, sprite_sheet_handle);
     }
