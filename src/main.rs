@@ -1,6 +1,9 @@
+#![feature(clamp)]
+
 use crate::game::GameState;
 use amethyst::{
     core::transform::TransformBundle,
+    input::{InputBundle, StringBindings},
     prelude::*,
     renderer::{
         plugins::{RenderFlat2D, RenderToWindow},
@@ -9,8 +12,10 @@ use amethyst::{
     },
     utils::application_root_dir,
 };
+use crate::systems::PaddleSystem;
 
 mod game;
+mod systems;
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
@@ -30,7 +35,11 @@ fn main() -> amethyst::Result<()> {
                 )
                 .with_plugin(RenderFlat2D::default()),
         )?
-        .with_bundle(TransformBundle::new())?;
+        .with_bundle(
+            InputBundle::<StringBindings>::new(),
+        )?
+        .with_bundle(TransformBundle::new())?
+        .with(PaddleSystem::new(), "paddle_system", &["input_system", "transform_system"]);
 
     let mut game = Application::new(assets_dir, GameState, game_data)?;
     game.run();

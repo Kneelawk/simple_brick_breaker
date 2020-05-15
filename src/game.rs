@@ -11,6 +11,8 @@ pub const ARENA_WIDTH: f32 = 1280.0;
 pub const ARENA_HEIGHT: f32 = 720.0;
 pub const PADDLE_WIDTH: f32 = 128.0;
 pub const PADDLE_HEIGHT: f32 = 32.0;
+pub const PADDLE_MAX_VELOCITY: f32 = 12.0;
+pub const PADDLE_DISTANCE_VELOCITY_RATIO: f32 = 10.0;
 pub const BALL_WIDTH: f32 = 16.0;
 pub const BALL_HEIGHT: f32 = 16.0;
 
