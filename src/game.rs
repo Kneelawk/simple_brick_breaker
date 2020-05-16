@@ -1,11 +1,15 @@
+use crate::{
+    collision::initialize_collision_context,
+    components::{Ball, Collidable, Paddle},
+};
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
-    core::transform::Transform,
-    ecs::prelude::{Component, NullStorage},
+    core::{math::Vector2, transform::Transform},
     prelude::{Builder, World, WorldExt},
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
     GameData, SimpleState, StateData,
 };
+use ncollide2d::shape::Cuboid;
 
 pub const ARENA_WIDTH: f32 = 1280.0;
 pub const ARENA_HEIGHT: f32 = 720.0;
@@ -15,20 +19,25 @@ pub const PADDLE_MAX_VELOCITY: f32 = 720.0;
 pub const PADDLE_DISTANCE_VELOCITY_RATIO: f32 = 1.0 / 6.0;
 pub const BALL_WIDTH: f32 = 16.0;
 pub const BALL_HEIGHT: f32 = 16.0;
+pub const BALL_INITIAL_SPEED: f32 = 240.0;
+pub const BALL_MAX_SPEED: f32 = 600.0;
 
 pub struct GameState;
-
-#[derive(Debug, Copy, Clone, Default)]
-pub struct Paddle;
 
 impl SimpleState for GameState {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let world = data.world;
 
+        world.register::<Collidable>();
+        world.register::<Ball>();
+
         let sprite_sheet_handle = load_sprite_sheet(world);
 
+        initialize_collision_context(world);
+
         initialize_camera(world);
-        initialize_paddle(world, sprite_sheet_handle);
+        initialize_paddle(world, sprite_sheet_handle.clone());
+        initialize_ball(world, sprite_sheet_handle);
     }
 }
 
@@ -63,9 +72,38 @@ fn initialize_paddle(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>
         sprite_number: 0,
     };
 
+    let shape = Cuboid::new(Vector2::new(PADDLE_WIDTH / 2.0, PADDLE_HEIGHT / 2.0));
+    let collidable = Collidable::new_other(world, &transform, shape);
+
     world
         .create_entity()
         .with(Paddle)
+        .with(collidable)
+        .with(transform)
+        .with(render)
+        .build();
+}
+
+fn initialize_ball(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) {
+    let mut transform = Transform::default();
+    transform.set_translation_xyz(ARENA_WIDTH / 2.0, ARENA_HEIGHT / 2.0, 0.0);
+
+    let ball = Ball {
+        velocity: Vector2::new(-40.0, -50.0),
+    };
+
+    let render = SpriteRender {
+        sprite_sheet: sprite_sheet_handle,
+        sprite_number: 1,
+    };
+
+    let shape = Cuboid::new(Vector2::new(BALL_WIDTH / 2.0, BALL_HEIGHT / 2.0));
+    let collidable = Collidable::new_ball(world, &transform, shape);
+
+    world
+        .create_entity()
+        .with(ball)
+        .with(collidable)
         .with(transform)
         .with(render)
         .build();
@@ -80,8 +118,4 @@ fn initialize_camera(world: &mut World) {
         .with(Camera::standard_2d(ARENA_WIDTH, ARENA_HEIGHT))
         .with(transform)
         .build();
-}
-
-impl Component for Paddle {
-    type Storage = NullStorage<Paddle>;
 }

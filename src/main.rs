@@ -1,6 +1,9 @@
 #![feature(clamp)]
 
-use crate::game::GameState;
+use crate::{
+    game::GameState,
+    systems::{BallCollisionSystem, BallMovementSystem, PaddleSystem, WorldUpdateSystem},
+};
 use amethyst::{
     core::transform::TransformBundle,
     input::{InputBundle, StringBindings},
@@ -12,8 +15,9 @@ use amethyst::{
     },
     utils::application_root_dir,
 };
-use crate::systems::PaddleSystem;
 
+mod collision;
+mod components;
 mod game;
 mod systems;
 
@@ -35,11 +39,28 @@ fn main() -> amethyst::Result<()> {
                 )
                 .with_plugin(RenderFlat2D::default()),
         )?
-        .with_bundle(
-            InputBundle::<StringBindings>::new(),
-        )?
+        .with_bundle(InputBundle::<StringBindings>::new())?
         .with_bundle(TransformBundle::new())?
-        .with(PaddleSystem::new(), "paddle_system", &["input_system", "transform_system"]);
+        .with(
+            PaddleSystem::new(),
+            "paddle_system",
+            &["input_system", "transform_system"],
+        )
+        .with(
+            BallMovementSystem,
+            "ball_movement_system",
+            &["transform_system", "paddle_system"],
+        )
+        .with(
+            WorldUpdateSystem,
+            "world_update_system",
+            &["transform_system", "paddle_system", "ball_movement_system"],
+        )
+        .with(
+            BallCollisionSystem,
+            "ball_collision_system",
+            &["ball_movement_system", "world_update_system"],
+        );
 
     let mut game = Application::new(assets_dir, GameState, game_data)?;
     game.run();

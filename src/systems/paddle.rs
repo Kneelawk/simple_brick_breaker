@@ -1,5 +1,6 @@
-use crate::game::{
-    Paddle, ARENA_WIDTH, PADDLE_DISTANCE_VELOCITY_RATIO, PADDLE_MAX_VELOCITY, PADDLE_WIDTH,
+use crate::{
+    components::Paddle,
+    game::{ARENA_WIDTH, PADDLE_DISTANCE_VELOCITY_RATIO, PADDLE_MAX_VELOCITY, PADDLE_WIDTH},
 };
 use amethyst::{
     core::{timing::Time, transform::Transform},
