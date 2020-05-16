@@ -52,7 +52,7 @@ fn main() -> amethyst::Result<()> {
             &["transform_system", "paddle_system"],
         )
         .with(
-            WorldUpdateSystem,
+            WorldUpdateSystem::default(),
             "world_update_system",
             &["transform_system", "paddle_system", "ball_movement_system"],
         )

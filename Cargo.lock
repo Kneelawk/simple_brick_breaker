@@ -3250,6 +3250,7 @@ version = "0.1.0"
 dependencies = [
  "amethyst",
  "ncollide2d",
+ "smallvec 1.4.0",
 ]
 
 [[package]]

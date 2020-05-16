@@ -1,6 +1,6 @@
 use crate::{
     collision::CollisionContext,
-    components::{Ball, Collidable},
+    components::{Ball, Collidable, Contact},
 };
 use amethyst::{
     core::{
@@ -11,6 +11,7 @@ use amethyst::{
     derive::SystemDesc,
     ecs::{Join, Read, ReadStorage, System, SystemData, WriteStorage},
 };
+use ncollide2d::pipeline::narrow_phase::ContactEvent;
 
 #[derive(SystemDesc)]
 pub struct BallMovementSystem;
@@ -40,21 +41,20 @@ impl<'s> System<'s> for BallCollisionSystem {
     type SystemData = (
         WriteStorage<'s, Ball>,
         ReadStorage<'s, Collidable>,
+        ReadStorage<'s, Contact>,
         Read<'s, CollisionContext>,
     );
 
-    fn run(&mut self, (mut balls, collidables, context): Self::SystemData) {
+    fn run(&mut self, (mut balls, collidables, contacts, context): Self::SystemData) {
         let world = &context.world;
 
-        for (ball, collidable) in (&mut balls, &collidables).join() {
-            if let Some(contacts) = world.collision_objects_in_contact_with(collidable.handle) {
-                let mut contacted = false;
+        for (ball, collidable, contact) in (&mut balls, &collidables, &contacts).join() {
+            let mut contacted = false;
 
-                for contact in contacts {
-                    if let Some((a, _, _, manifold)) =
-                        world.contact_pair(collidable.handle, contact, true)
-                    {
-                        let normal: Unit<Vector2<f32>> = if a == collidable.handle {
+            for &event in contact.contacts.iter() {
+                if let ContactEvent::Started(a, b) = event {
+                    if let Some((relative, _, _, manifold)) = world.contact_pair(a, b, true) {
+                        let normal: Unit<Vector2<f32>> = if relative == collidable.handle {
                             manifold.deepest_contact().unwrap().contact.normal
                         } else {
                             -manifold.deepest_contact().unwrap().contact.normal
@@ -66,10 +66,10 @@ impl<'s> System<'s> for BallCollisionSystem {
                         }
                     }
                 }
+            }
 
-                if contacted {
-                    println!("Contact!");
-                }
+            if contacted {
+                println!("Contact!");
             }
         }
     }
