@@ -1,5 +1,3 @@
-#![feature(clamp)]
-
 use crate::{
     game::GameState,
     systems::{BallCollisionSystem, BallMovementSystem, PaddleSystem, WorldUpdateSystem},

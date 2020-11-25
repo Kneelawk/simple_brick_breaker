@@ -30,7 +30,13 @@ impl<'s> System<'s> for PaddleSystem {
 
     fn run(&mut self, (mut transforms, paddles, input, time): Self::SystemData) {
         if let Some((x, _y)) = input.mouse_position() {
-            self.target_x = x.clamp(PADDLE_WIDTH / 2.0, ARENA_WIDTH - PADDLE_WIDTH / 2.0);
+            if x < PADDLE_WIDTH / 2.0 {
+                self.target_x = PADDLE_WIDTH / 2.0;
+            } else if x > ARENA_WIDTH - PADDLE_WIDTH / 2.0 {
+                self.target_x = ARENA_WIDTH - PADDLE_WIDTH / 2.0;
+            } else {
+                self.target_x = x;
+            }
         }
         for (_paddle, transform) in (&paddles, &mut transforms).join() {
             let paddle_x = transform.translation().x;
