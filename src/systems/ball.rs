@@ -55,9 +55,9 @@ impl<'s> System<'s> for BallCollisionSystem {
                 if let ContactEvent::Started(a, b) = event {
                     if let Some((relative, _, _, manifold)) = world.contact_pair(a, b, true) {
                         let normal: Unit<Vector2<f32>> = if relative == collidable.handle {
-                            manifold.deepest_contact().unwrap().contact.normal
+                            manifold.deepest_contact().unwrap().contact.normal.clone()
                         } else {
-                            -manifold.deepest_contact().unwrap().contact.normal
+                            -manifold.deepest_contact().unwrap().contact.normal.clone()
                         };
 
                         if ball.velocity.dot(&normal) > 0.0 {
