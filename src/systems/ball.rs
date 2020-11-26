@@ -1,14 +1,13 @@
-use crate::game::{BALL_MAX_ROTATION, BALL_MAX_SCALE, BALL_MAX_SPEED, BALL_MIN_SCALE};
 use crate::{
     collision::CollisionContext,
     components::{Ball, Collidable, Contact},
+    game::{BALL_MAX_ROTATION, BALL_MAX_SCALE, BALL_MAX_SPEED, BALL_MIN_SCALE},
 };
 #[allow(unused_imports)]
 use amethyst::core::alga::linear::Transformation;
-use amethyst::core::math::Matrix3;
 use amethyst::{
     core::{
-        math::{Unit, Vector2},
+        math::{Matrix3, Unit, Vector2},
         timing::Time,
         transform::Transform,
     },
