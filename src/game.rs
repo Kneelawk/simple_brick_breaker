@@ -10,6 +10,8 @@ use amethyst::{
     GameData, SimpleState, StateData,
 };
 use ncollide2d::shape::Cuboid;
+use rand::{thread_rng, Rng};
+use std::f32::consts::PI;
 
 pub const ARENA_WIDTH: f32 = 1280.0;
 pub const ARENA_HEIGHT: f32 = 720.0;
@@ -19,8 +21,11 @@ pub const PADDLE_MAX_VELOCITY: f32 = 720.0;
 pub const PADDLE_DISTANCE_VELOCITY_RATIO: f32 = 1.0 / 6.0;
 pub const BALL_WIDTH: f32 = 16.0;
 pub const BALL_HEIGHT: f32 = 16.0;
-pub const BALL_INITIAL_SPEED: f32 = 240.0;
-pub const BALL_MAX_SPEED: f32 = 600.0;
+pub const BALL_INITIAL_SPEED: f32 = 60.0;
+pub const BALL_MAX_SPEED: f32 = 540.0;
+pub const BALL_MAX_ROTATION: f32 = PI / 12.0;
+pub const BALL_MIN_SCALE: f32 = 1.0;
+pub const BALL_MAX_SCALE: f32 = 1.1;
 
 pub struct GameState;
 
@@ -37,7 +42,18 @@ impl SimpleState for GameState {
 
         initialize_camera(world);
         initialize_paddle(world, sprite_sheet_handle.clone());
-        initialize_ball(world, sprite_sheet_handle);
+
+        let mut rand = thread_rng();
+        let dir = rand.gen_range(0.0, 2.0 * PI);
+        initialize_ball(
+            world,
+            sprite_sheet_handle,
+            Vector2::new(ARENA_WIDTH / 2.0, ARENA_HEIGHT / 2.0),
+            Vector2::new(
+                BALL_INITIAL_SPEED * dir.cos(),
+                BALL_INITIAL_SPEED * dir.sin(),
+            ),
+        );
     }
 }
 
@@ -84,13 +100,16 @@ fn initialize_paddle(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>
         .build();
 }
 
-fn initialize_ball(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) {
+fn initialize_ball(
+    world: &mut World,
+    sprite_sheet_handle: Handle<SpriteSheet>,
+    position: Vector2<f32>,
+    velocity: Vector2<f32>,
+) {
     let mut transform = Transform::default();
-    transform.set_translation_xyz(ARENA_WIDTH / 2.0, ARENA_HEIGHT / 2.0, 0.0);
+    transform.set_translation_xyz(position.x, position.y, 0.0);
 
-    let ball = Ball {
-        velocity: Vector2::new(-40.0, -50.0),
-    };
+    let ball = Ball { velocity };
 
     let render = SpriteRender {
         sprite_sheet: sprite_sheet_handle,

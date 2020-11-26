@@ -1,7 +1,11 @@
+use crate::game::{BALL_MAX_ROTATION, BALL_MAX_SCALE, BALL_MAX_SPEED, BALL_MIN_SCALE};
 use crate::{
     collision::CollisionContext,
     components::{Ball, Collidable, Contact},
 };
+#[allow(unused_imports)]
+use amethyst::core::alga::linear::Transformation;
+use amethyst::core::math::Matrix3;
 use amethyst::{
     core::{
         math::{Unit, Vector2},
@@ -12,6 +16,7 @@ use amethyst::{
     ecs::{Join, Read, ReadStorage, System, SystemData, WriteStorage},
 };
 use ncollide2d::pipeline::narrow_phase::ContactEvent;
+use rand::{thread_rng, Rng};
 
 #[derive(SystemDesc)]
 pub struct BallMovementSystem;
@@ -47,6 +52,7 @@ impl<'s> System<'s> for BallCollisionSystem {
 
     fn run(&mut self, (mut balls, collidables, contacts, context): Self::SystemData) {
         let world = &context.world;
+        let mut rand = thread_rng();
 
         for (ball, collidable, contact) in (&mut balls, &collidables, &contacts).join() {
             let mut contacted = false;
@@ -62,6 +68,16 @@ impl<'s> System<'s> for BallCollisionSystem {
 
                         if ball.velocity.dot(&normal) > 0.0 {
                             ball.velocity -= 2.0 * ball.velocity.dot(&normal) * *normal;
+
+                            // randomly adjust ball direction
+                            let diff = (ball.velocity.dot(&normal) / ball.velocity.norm())
+                                .asin()
+                                .abs()
+                                .min(BALL_MAX_ROTATION);
+                            let rot = rand.gen_range(-diff, diff);
+                            let rot_mat: Matrix3<f32> = Matrix3::new_rotation(rot);
+                            ball.velocity = rot_mat.transform_vector(&ball.velocity);
+
                             contacted = true;
                         }
                     }
@@ -70,6 +86,12 @@ impl<'s> System<'s> for BallCollisionSystem {
 
             if contacted {
                 println!("Contact!");
+
+                // randomly increase ball speed
+                if ball.velocity.norm() < BALL_MAX_SPEED {
+                    ball.velocity =
+                        rand.gen_range(BALL_MIN_SCALE, BALL_MAX_SCALE) * ball.velocity.clone();
+                }
             }
         }
     }

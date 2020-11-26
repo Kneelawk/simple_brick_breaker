@@ -8,6 +8,7 @@ edition = "2018"
 amethyst = "^0.15.3"
 ncollide2d = "^0.21.0"
 smallvec = "^1.4.0"
+rand = "^0.7.3"
 
 [features]
 default = ["vulkan"]
