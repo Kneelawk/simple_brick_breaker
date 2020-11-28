@@ -1,6 +1,6 @@
 use crate::{
     collision::CollisionContext,
-    components::{Ball, Collidable, Contact},
+    components::{Ball, Collidable, Contact, ContactEventData},
     game::{BALL_MAX_ROTATION, BALL_MAX_SCALE, BALL_MAX_SPEED, BALL_MIN_SCALE},
 };
 #[allow(unused_imports)]
@@ -14,7 +14,6 @@ use amethyst::{
     derive::SystemDesc,
     ecs::{Join, Read, ReadStorage, System, SystemData, WriteStorage},
 };
-use ncollide2d::pipeline::narrow_phase::ContactEvent;
 use rand::{thread_rng, Rng};
 
 #[derive(SystemDesc)]
@@ -56,9 +55,16 @@ impl<'s> System<'s> for BallCollisionSystem {
         for (ball, collidable, contact) in (&mut balls, &collidables, &contacts).join() {
             let mut contacted = false;
 
-            for &event in contact.contacts.iter() {
-                if let ContactEvent::Started(a, b) = event {
-                    if let Some((relative, _, _, manifold)) = world.contact_pair(a, b, true) {
+            for &data in contact.contacts.iter() {
+                if let ContactEventData::Started {
+                    you_handle,
+                    other_handle,
+                    ..
+                } = data
+                {
+                    if let Some((relative, _, _, manifold)) =
+                        world.contact_pair(you_handle, other_handle, true)
+                    {
                         let normal: Unit<Vector2<f32>> = if relative == collidable.handle {
                             manifold.deepest_contact().unwrap().contact.normal.clone()
                         } else {

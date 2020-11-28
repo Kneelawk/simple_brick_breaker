@@ -1,12 +1,11 @@
 use crate::collision::CollisionContext;
 use amethyst::{
-    core::{math::Vector2, transform::Transform},
+    core::{ecs::Entity, math::Vector2, transform::Transform},
     ecs::{Component, DenseVecStorage, NullStorage},
     prelude::{World, WorldExt},
 };
 use ncollide2d::{
     math::Isometry,
-    narrow_phase::ContactEvent,
     pipeline::{CollisionGroups, CollisionObjectSlabHandle, GeometricQueryType},
     shape::{Shape, ShapeHandle},
 };
@@ -25,9 +24,25 @@ pub struct Collidable {
     pub handle: CollisionObjectSlabHandle,
 }
 
+#[derive(Copy, Clone)]
+pub enum ContactEventData {
+    Started {
+        you_handle: CollisionObjectSlabHandle,
+        other_handle: CollisionObjectSlabHandle,
+        you: Entity,
+        other: Option<Entity>,
+    },
+    Stopped {
+        you_handle: CollisionObjectSlabHandle,
+        other_handle: CollisionObjectSlabHandle,
+        you: Entity,
+        other: Option<Entity>,
+    },
+}
+
 #[derive(Clone)]
 pub struct Contact {
-    pub contacts: SmallVec<[ContactEvent<CollisionObjectSlabHandle>; 2]>,
+    pub contacts: SmallVec<[ContactEventData; 2]>,
 }
 
 impl Component for Paddle {

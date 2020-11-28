@@ -1,6 +1,6 @@
 use crate::{
     collision::CollisionContext,
-    components::{Collidable, Contact},
+    components::{Collidable, Contact, ContactEventData},
 };
 use amethyst::{
     core::{
@@ -51,41 +51,70 @@ impl<'s> System<'s> for WorldUpdateSystem {
             contacts.remove(entity);
         }
 
-        fn insert_event(
-            entities: &HashMap<CollisionObjectSlabHandle, Entity>,
-            contacts: &mut WriteStorage<'_, Contact>,
-            handle: CollisionObjectSlabHandle,
-            event: ContactEvent<CollisionObjectSlabHandle>,
-        ) {
-            if let Some(&entity) = entities.get(&handle) {
-                if let Some(contact) = contacts.get_mut(entity) {
-                    contact.contacts.push(event);
-                } else {
-                    contacts
-                        .insert(
-                            entity,
-                            Contact {
-                                contacts: smallvec![event],
-                            },
-                        )
-                        .unwrap();
-                }
-            }
-        }
-
         for &event in world.contact_events() {
             match event {
                 ContactEvent::Started(a, b) => {
-                    insert_event(&self.entities, &mut contacts, a, event);
-                    insert_event(&self.entities, &mut contacts, b, event);
+                    insert_event(&self.entities, &mut contacts, a, b, true);
+                    insert_event(&self.entities, &mut contacts, b, a, true);
                 }
                 ContactEvent::Stopped(a, b) => {
-                    insert_event(&self.entities, &mut contacts, a, event);
-                    insert_event(&self.entities, &mut contacts, b, event);
+                    insert_event(&self.entities, &mut contacts, a, b, false);
+                    insert_event(&self.entities, &mut contacts, b, a, false);
                 }
             }
         }
 
         self.entities.clear();
+    }
+}
+
+fn insert_event(
+    entities: &HashMap<CollisionObjectSlabHandle, Entity>,
+    contacts: &mut WriteStorage<'_, Contact>,
+    handle: CollisionObjectSlabHandle,
+    other: CollisionObjectSlabHandle,
+    started: bool,
+) {
+    if let Some(&entity) = entities.get(&handle) {
+        if let Some(contact) = contacts.get_mut(entity) {
+            contact
+                .contacts
+                .push(create_contact(entities, handle, other, started, entity));
+        } else {
+            contacts
+                .insert(
+                    entity,
+                    Contact {
+                        contacts: smallvec![create_contact(
+                            entities, handle, other, started, entity
+                        )],
+                    },
+                )
+                .unwrap();
+        }
+    }
+}
+
+fn create_contact(
+    entities: &HashMap<CollisionObjectSlabHandle, Entity>,
+    handle: CollisionObjectSlabHandle,
+    other: CollisionObjectSlabHandle,
+    started: bool,
+    entity: Entity,
+) -> ContactEventData {
+    if started {
+        ContactEventData::Started {
+            you_handle: handle,
+            other_handle: other,
+            you: entity,
+            other: entities.get(&handle).map(ToOwned::to_owned),
+        }
+    } else {
+        ContactEventData::Stopped {
+            you_handle: handle,
+            other_handle: other,
+            you: entity,
+            other: entities.get(&handle).map(ToOwned::to_owned),
+        }
     }
 }
