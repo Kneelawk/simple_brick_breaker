@@ -45,6 +45,9 @@ pub struct Contact {
     pub contacts: SmallVec<[ContactEventData; 2]>,
 }
 
+#[derive(Debug, Default)]
+pub struct BallDestroyer;
+
 impl Component for Paddle {
     type Storage = NullStorage<Paddle>;
 }
@@ -59,6 +62,10 @@ impl Component for Collidable {
 
 impl Component for Contact {
     type Storage = DenseVecStorage<Contact>;
+}
+
+impl Component for BallDestroyer {
+    type Storage = NullStorage<BallDestroyer>;
 }
 
 impl Collidable {

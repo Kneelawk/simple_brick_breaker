@@ -1,6 +1,6 @@
 use crate::{
     collision::CollisionContext,
-    components::{Ball, Collidable, Contact, ContactEventData},
+    components::{Ball, Contact, ContactEventData},
     game::{BALL_MAX_ROTATION, BALL_MAX_SCALE, BALL_MAX_SPEED, BALL_MIN_SCALE},
 };
 #[allow(unused_imports)]
@@ -43,16 +43,15 @@ pub struct BallCollisionSystem;
 impl<'s> System<'s> for BallCollisionSystem {
     type SystemData = (
         WriteStorage<'s, Ball>,
-        ReadStorage<'s, Collidable>,
         ReadStorage<'s, Contact>,
         Read<'s, CollisionContext>,
     );
 
-    fn run(&mut self, (mut balls, collidables, contacts, context): Self::SystemData) {
+    fn run(&mut self, (mut balls, contacts, context): Self::SystemData) {
         let world = &context.world;
         let mut rand = thread_rng();
 
-        for (ball, collidable, contact) in (&mut balls, &collidables, &contacts).join() {
+        for (ball, contact) in (&mut balls, &contacts).join() {
             let mut contacted = false;
 
             for &data in contact.contacts.iter() {
@@ -62,14 +61,11 @@ impl<'s> System<'s> for BallCollisionSystem {
                     ..
                 } = data
                 {
-                    if let Some((relative, _, _, manifold)) =
+                    if let Some((_, _, _, manifold)) =
                         world.contact_pair(you_handle, other_handle, true)
                     {
-                        let normal: Unit<Vector2<f32>> = if relative == collidable.handle {
-                            manifold.deepest_contact().unwrap().contact.normal.clone()
-                        } else {
-                            -manifold.deepest_contact().unwrap().contact.normal.clone()
-                        };
+                        let normal: Unit<Vector2<f32>> =
+                            manifold.deepest_contact().unwrap().contact.normal.clone();
 
                         if ball.velocity.dot(&normal) > 0.0 {
                             ball.velocity -= 2.0 * ball.velocity.dot(&normal) * *normal;

@@ -107,14 +107,14 @@ fn create_contact(
             you_handle: handle,
             other_handle: other,
             you: entity,
-            other: entities.get(&handle).map(ToOwned::to_owned),
+            other: entities.get(&other).map(ToOwned::to_owned),
         }
     } else {
         ContactEventData::Stopped {
             you_handle: handle,
             other_handle: other,
             you: entity,
-            other: entities.get(&handle).map(ToOwned::to_owned),
+            other: entities.get(&other).map(ToOwned::to_owned),
         }
     }
 }

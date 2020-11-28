@@ -1,6 +1,9 @@
 use crate::{
     game::GameState,
-    systems::{BallCollisionSystem, BallMovementSystem, PaddleSystem, WorldUpdateSystem},
+    systems::{
+        BallCollisionSystem, BallDestroyerSystem, BallMovementSystem, PaddleSystem,
+        WorldUpdateSystem,
+    },
 };
 use amethyst::{
     core::transform::TransformBundle,
@@ -57,6 +60,11 @@ fn main() -> amethyst::Result<()> {
         .with(
             BallCollisionSystem,
             "ball_collision_system",
+            &["ball_movement_system", "world_update_system"],
+        )
+        .with(
+            BallDestroyerSystem,
+            "ball_destroyer_system",
             &["ball_movement_system", "world_update_system"],
         );
 

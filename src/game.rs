@@ -1,6 +1,6 @@
 use crate::{
     collision::initialize_collision_context,
-    components::{Ball, Collidable, Paddle},
+    components::{Ball, BallDestroyer, Collidable, Paddle},
 };
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
@@ -9,7 +9,7 @@ use amethyst::{
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
     GameData, SimpleState, StateData,
 };
-use ncollide2d::shape::Cuboid;
+use ncollide2d::shape::{Cuboid, Plane};
 use rand::{thread_rng, Rng};
 use std::f32::consts::PI;
 
@@ -42,6 +42,7 @@ impl SimpleState for GameState {
 
         initialize_camera(world);
         initialize_paddle(world, sprite_sheet_handle.clone());
+        initialize_ball_destroyer(world);
 
         let mut rand = thread_rng();
         let dir = rand.gen_range(0.0, 2.0 * PI);
@@ -135,6 +136,21 @@ fn initialize_camera(world: &mut World) {
     world
         .create_entity()
         .with(Camera::standard_2d(ARENA_WIDTH, ARENA_HEIGHT))
+        .with(transform)
+        .build();
+}
+
+fn initialize_ball_destroyer(world: &mut World) {
+    let mut transform = Transform::default();
+    transform.set_translation_xyz(ARENA_WIDTH / 2.0, 0.0, 0.0);
+
+    let shape = Plane::new(Vector2::y_axis());
+    let collidable = Collidable::new_other(world, &transform, shape);
+
+    world
+        .create_entity()
+        .with(BallDestroyer)
+        .with(collidable)
         .with(transform)
         .build();
 }
